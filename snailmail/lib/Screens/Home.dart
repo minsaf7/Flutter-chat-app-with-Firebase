@@ -1,7 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:snailmail/Screens/SignIn.dart';
 import 'package:snailmail/Services/Authenticate.dart';
+import 'package:snailmail/Services/Database.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -13,6 +16,20 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   Color mainColor = Color(0xFF04c3cb);
   Color secondColor = Color(0xFF121212);
+
+  FirebaseAuth auth = FirebaseAuth.instance;
+  bool isSearchig = false;
+  late Stream? usersStream = Stream.empty();
+
+  TextEditingController search = TextEditingController();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    //usersStream;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,7 +44,9 @@ class _HomeState extends State<Home> {
         child: ListView(
           children: [
             DrawerHeader(
-              child: Text("Minsaf"),
+              child: CircleAvatar(
+                  // backgroundImage: NetworkImage(photoURl!),
+                  ),
             ),
             ElevatedButton(
               onPressed: () {
@@ -48,34 +67,128 @@ class _HomeState extends State<Home> {
           child: Column(
             children: [
               //search containet
-              Container(
-                decoration: BoxDecoration(
-                    color: Colors.grey[850],
-                    border: Border.all(
-                      color: Colors.grey,
-                      width: 2,
-                    ),
-                    borderRadius: BorderRadius.circular(20)),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
+              Row(
+                children: [
+                  isSearchig
+                      ? Padding(
+                          padding: const EdgeInsets.only(right: 5),
+                          child: IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  isSearchig = false;
+                                  search.clear();
+                                });
+                              },
+                              icon: Icon(Icons.arrow_back)),
+                        )
+                      : Container(),
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                          color: Colors.grey[850],
+                          border: Border.all(
+                            color: Colors.grey,
+                            width: 2,
+                          ),
+                          borderRadius: BorderRadius.circular(20)),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
 
-                  //search textfield and search icon
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          decoration: InputDecoration(border: InputBorder.none),
+                        //search textfield and search icon
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: search,
+                                decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    hintText: "username"),
+                              ),
+                            ),
+                            IconButton(
+                                onPressed: () {
+                                  if (search.text != "") {
+                                    onSearch();
+                                  }
+                                },
+                                icon: Icon(Icons.search)),
+                          ],
                         ),
                       ),
-                      Icon(Icons.search)
-                    ],
-                  ),
-                ),
-              )
+                    ),
+                  )
+                ],
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              Divider(
+                color: mainColor,
+                height: 2,
+              ),
+
+              isSearchig ? searchList() : chatRooms()
             ],
           ),
         ),
       ),
+    );
+  }
+
+  onSearch() async {
+    setState(() {
+      isSearchig = true;
+    });
+    usersStream = await Databases().searchUser(search.text);
+
+    //print("USER: " + usersStream.length.toString());]
+  }
+
+  Widget searchList() {
+    return StreamBuilder(
+      stream: usersStream,
+      builder: (context, AsyncSnapshot snapshot) {
+        return snapshot.hasData
+            ? ListView.builder(
+                itemCount: snapshot.data.docs.length,
+                shrinkWrap: true,
+                itemBuilder: (context, index) {
+                  DocumentSnapshot documentSnapshot = snapshot.data.docs[index];
+                  return Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    // child: Container(
+                    //   child: Row(
+                    //     children: [
+                    //       CircleAvatar(
+                    //         backgroundImage:
+                    //             NetworkImage(documentSnapshot["profileURL"]),
+                    //       ),
+                    //       SizedBox(width: 10),
+                    //       Text(documentSnapshot["name"])
+                    //     ],
+                    //   ),
+                    // ),
+                    child: ListTile(
+                      onTap: () {
+                        print(documentSnapshot.id);
+                        documentSnapshot.id;
+                      },
+                      leading: CircleAvatar(
+                        backgroundImage:
+                            NetworkImage(documentSnapshot["profileURL"]),
+                      ),
+                      title: Text(documentSnapshot["name"]),
+                    ),
+                  );
+                })
+            : CircularProgressIndicator();
+      },
+    );
+  }
+
+  chatRooms() {
+    return Container(
+      child: ListTile(),
     );
   }
 }

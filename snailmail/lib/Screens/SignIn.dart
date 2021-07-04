@@ -49,7 +49,7 @@ class _SignInState extends State<SignIn> {
                 )),
               ),
             ),
-            SizedBox(height: 260),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.4),
             Text(
               "By Minsaf",
               style: GoogleFonts.ubuntu(color: mainColor),
