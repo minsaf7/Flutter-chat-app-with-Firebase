@@ -3,6 +3,9 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:snailmail/Screens/SignIn.dart';
+import 'package:snailmail/Services/Authenticate.dart';
+
+import 'Home.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -12,11 +15,38 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  bool isLogged = false;
+  checkAuth() {
+    return FutureBuilder(
+        future: AuthMethods().getCurrentUser(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            setState(() {
+              isLogged = true;
+            });
+            return Home();
+          } else {
+            setState(() {
+              isLogged = false;
+            });
+            return SignIn();
+          }
+        });
+  }
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     Timer(Duration(seconds: 2), () {
+      // if (AuthMethods().getCurrentUser() == null) {
+      //   Navigator.of(context)
+      //       .pushReplacement(MaterialPageRoute(builder: (builder) => SignIn()));
+      // } else {
+      //   Navigator.of(context)
+      //       .pushReplacement(MaterialPageRoute(builder: (builder) => Home()));
+      // }
+
       Navigator.of(context)
           .pushReplacement(MaterialPageRoute(builder: (builder) => SignIn()));
     });

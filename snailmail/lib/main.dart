@@ -30,6 +30,7 @@ class MyApp extends StatelessWidget {
               return SplashScreen();
             }
           }),
+      // home: SplashScreen(),
     );
   }
 }

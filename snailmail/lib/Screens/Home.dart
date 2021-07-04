@@ -42,6 +42,40 @@ class _HomeState extends State<Home> {
         ),
       ),
       backgroundColor: secondColor,
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        child: Container(
+          child: Column(
+            children: [
+              //search containet
+              Container(
+                decoration: BoxDecoration(
+                    color: Colors.grey[850],
+                    border: Border.all(
+                      color: Colors.grey,
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.circular(20)),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+
+                  //search textfield and search icon
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          decoration: InputDecoration(border: InputBorder.none),
+                        ),
+                      ),
+                      Icon(Icons.search)
+                    ],
+                  ),
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
