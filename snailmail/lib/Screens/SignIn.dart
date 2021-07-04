@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:snailmail/Services/Authenticate.dart';
 
 //flutter run -d 81e5c67a
 
@@ -32,6 +33,9 @@ class _SignInState extends State<SignIn> {
             ),
             SizedBox(height: 160),
             GestureDetector(
+              onTap: () {
+                AuthMethods().googleSignIn(context);
+              },
               child: Container(
                 height: 60,
                 width: 300,

@@ -1,10 +1,12 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:snailmail/Screens/Home.dart';
 import 'package:snailmail/Screens/SplashScreen.dart';
+import 'package:snailmail/Services/Authenticate.dart';
 
 void main() async {
-  // WidgetsFlutterBinding.ensureInitialized();
-  // await Firebase.initializeApp();
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(MyApp());
 }
 
@@ -19,7 +21,15 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(primarySwatch: Colors.blue, brightness: Brightness.dark),
       darkTheme: ThemeData.dark(),
       debugShowCheckedModeBanner: false,
-      home: SplashScreen(),
+      home: FutureBuilder(
+          future: AuthMethods().getCurrentUser(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return Home();
+            } else {
+              return SplashScreen();
+            }
+          }),
     );
   }
 }

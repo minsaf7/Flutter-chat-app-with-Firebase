@@ -1,14 +1,18 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:snailmail/HelperFunctions/sharedPref.dart';
+import 'package:snailmail/Screens/Home.dart';
+import 'package:snailmail/Services/Database.dart';
 
 class AuthMethods {
   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
 //getting currently logged in user
-  getCurrentUser() {
-    return firebaseAuth.currentUser;
+  getCurrentUser() async {
+    return await firebaseAuth.currentUser;
   }
 
 //signinig in with google
@@ -35,6 +39,24 @@ class AuthMethods {
       SharedPrefHelper().saveUserID(userDetails.uid);
       SharedPrefHelper().saveDisplayname(userDetails.displayName!);
       SharedPrefHelper().saveUserProfile(userDetails.photoURL!);
+
+      Map<String, dynamic> data = {
+        "username": userDetails.email!.replaceAll("@gmail.com", ""),
+        "email": userDetails.email,
+        "name": userDetails.displayName,
+        "profileURL": userDetails.photoURL
+      };
+
+      Databases().addUser(userDetails.uid, data).then((value) => {
+            Navigator.pushReplacement(
+                context, MaterialPageRoute(builder: (builder) => Home()))
+          });
     }
+  }
+
+  Future signout() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.clear();
+    await firebaseAuth.signOut();
   }
 }
