@@ -46,6 +46,7 @@ class AuthMethods {
         "name": userDetails.displayName,
         "profileURL": userDetails.photoURL
       };
+      SharedPrefHelper().saveUsername(data["username"]);
 
       Databases().addUser(userDetails.uid, data).then((value) => {
             Navigator.pushReplacement(

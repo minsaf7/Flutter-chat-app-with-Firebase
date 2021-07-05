@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:snailmail/Screens/Chat.dart';
 import 'package:snailmail/Screens/SignIn.dart';
 import 'package:snailmail/Services/Authenticate.dart';
 import 'package:snailmail/Services/Database.dart';
@@ -27,6 +28,7 @@ class _HomeState extends State<Home> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    isSearchig = false;
     //usersStream;
   }
 
@@ -156,28 +158,22 @@ class _HomeState extends State<Home> {
                   DocumentSnapshot documentSnapshot = snapshot.data.docs[index];
                   return Padding(
                     padding: const EdgeInsets.all(10.0),
-                    // child: Container(
-                    //   child: Row(
-                    //     children: [
-                    //       CircleAvatar(
-                    //         backgroundImage:
-                    //             NetworkImage(documentSnapshot["profileURL"]),
-                    //       ),
-                    //       SizedBox(width: 10),
-                    //       Text(documentSnapshot["name"])
-                    //     ],
-                    //   ),
-                    // ),
                     child: ListTile(
                       onTap: () {
                         print(documentSnapshot.id);
                         documentSnapshot.id;
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (builder) => Chat(
+                                  username: documentSnapshot["username"],
+                                  name: documentSnapshot["name"],
+                                )));
                       },
                       leading: CircleAvatar(
                         backgroundImage:
                             NetworkImage(documentSnapshot["profileURL"]),
                       ),
                       title: Text(documentSnapshot["name"]),
+                      subtitle: Text(documentSnapshot["email"]),
                     ),
                   );
                 })
