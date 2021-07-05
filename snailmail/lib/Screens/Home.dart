@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:snailmail/HelperFunctions/sharedPref.dart';
 import 'package:snailmail/Screens/Chat.dart';
 import 'package:snailmail/Screens/SignIn.dart';
 import 'package:snailmail/Services/Authenticate.dart';
@@ -24,11 +25,14 @@ class _HomeState extends State<Home> {
 
   TextEditingController search = TextEditingController();
 
+  String? myName, myprofilePic, myUsername, myEmail;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     isSearchig = false;
+    getMyInforFromSharedPrferences();
     //usersStream;
   }
 
@@ -162,6 +166,15 @@ class _HomeState extends State<Home> {
                       onTap: () {
                         print(documentSnapshot.id);
                         documentSnapshot.id;
+
+                        var chatRoomId = getChatWithUserID(
+                            documentSnapshot["username"], myUsername!);
+
+                        Map<String, dynamic> chatUsers = {
+                          "users": [myUsername, documentSnapshot["username"]]
+                        };
+                        Databases().createChatRoom(chatRoomId, chatUsers);
+
                         Navigator.of(context).push(MaterialPageRoute(
                             builder: (builder) => Chat(
                                   username: documentSnapshot["username"],
@@ -186,5 +199,32 @@ class _HomeState extends State<Home> {
     return Container(
       child: ListTile(),
     );
+  }
+
+  getChatWithUserID(String chatUserID, String myUserID) {
+    if (chatUserID.substring(0, 1).codeUnitAt(0) >
+        myUserID.substring(0, 1).codeUnitAt(0)) {
+      return "$myUserID\_$chatUserID";
+    } else {
+      return "$chatUserID\_$myUserID";
+    }
+  }
+
+  getMyInforFromSharedPrferences() async {
+    SharedPrefHelper pref = SharedPrefHelper();
+    // print("name");
+    myName = await pref.getDisplayname();
+    // print("pic");
+    myprofilePic = await pref.getUserprofile();
+    // print("username");
+    myUsername = await pref.getUsername();
+    // print("email");
+    myEmail = await pref.getUserEmail();
+    // print("done");
+
+    print(myName);
+    print(myEmail);
+    print(myUsername);
+    print(myprofilePic);
   }
 }

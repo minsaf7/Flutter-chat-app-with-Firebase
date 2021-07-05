@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:random_string/random_string.dart';
 import 'package:snailmail/HelperFunctions/sharedPref.dart';
+import 'package:snailmail/Services/Database.dart';
 
 class Chat extends StatefulWidget {
   final String username;
@@ -51,7 +53,48 @@ class _ChatState extends State<Chat> {
     }
   }
 
+  sendMessage(bool isSedClocked) {
+    if (messageTestField.text != "") {
+      String message = messageTestField.text;
+
+      var lastMessage = DateTime.now();
+
+      Map<String, dynamic> messageInfo = {
+        "message": message,
+        "sendBy": myUsername,
+        "ts": lastMessage,
+        "imageURL": myprofilePic
+      };
+
+      //message ID
+      if (messageID == "") {
+        messageID = randomAlphaNumeric(12);
+      }
+
+      Databases()
+          .sendMessage(chatRoomId!, messageID, messageInfo)
+          .then((value) {
+        Map<String, dynamic> messageInfo = {
+          "lastMessage": message,
+          "lastMessageSendBy": myUsername,
+          "lastMessageTS": lastMessage
+        };
+        Databases().updateMessage(chatRoomId!, messageInfo);
+
+        if (isSedClocked) {
+          //clearing the textfield after sending the message
+          messageTestField.text = "";
+
+          //make messageID to blank to get regenerated on the next message
+
+          messageID = "";
+        }
+      });
+    }
+  }
+
   getAndSendMesages() async {}
+
   runOnLuanch() async {
     await getMyInforFromSharedPrferences();
     getAndSendMesages();
@@ -92,6 +135,9 @@ class _ChatState extends State<Chat> {
                     children: [
                       Expanded(
                           child: TextField(
+                        onChanged: (val) {
+                          sendMessage(false);
+                        },
                         controller: messageTestField,
                         decoration: InputDecoration(
                             border: InputBorder.none,
@@ -99,7 +145,9 @@ class _ChatState extends State<Chat> {
                             hintStyle: TextStyle(fontStyle: FontStyle.italic)),
                       )),
                       IconButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          sendMessage(true);
+                        },
                         icon: Icon(Icons.send),
                         color: mainColor,
                       )
