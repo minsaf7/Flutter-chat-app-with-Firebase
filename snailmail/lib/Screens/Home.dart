@@ -23,17 +23,26 @@ class _HomeState extends State<Home> {
   bool isSearchig = false;
   bool isKeyboardVisible = false;
   late Stream? usersStream = Stream.empty();
+  late Stream? chatRoomStream = Stream.empty();
 
   TextEditingController search = TextEditingController();
 
-  String? myName, myprofilePic, myUsername, myEmail;
+  String? myName,
+      myprofilePic =
+          "https://www.seekpng.com/png/detail/966-9665317_placeholder-image-person-jpg.png",
+      myUsername,
+      myEmail;
 
   @override
   void initState() {
     // TODO: implement initState
+
     super.initState();
     isSearchig = false;
-    getMyInforFromSharedPrferences();
+    print("Luanch");
+    onLuanch();
+    print("Luanch called");
+    // getMyInforFromSharedPrferences();
     //usersStream;
   }
 
@@ -51,18 +60,23 @@ class _HomeState extends State<Home> {
         child: ListView(
           children: [
             DrawerHeader(
-              child: CircleAvatar(
-                  // backgroundImage: NetworkImage(photoURl!),
-                  ),
+              child: myprofilePic!.isEmpty
+                  ? CircleAvatar()
+                  : CircleAvatar(
+                      backgroundImage: NetworkImage(myprofilePic!),
+                    ),
             ),
-            ElevatedButton(
-              onPressed: () {
-                AuthMethods().signout().then((e) {
-                  Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder: (builder) => SignIn()));
-                });
-              },
-              child: Text("Log out"),
+            Container(
+              alignment: Alignment.center,
+              child: ElevatedButton(
+                onPressed: () {
+                  AuthMethods().signout().then((e) {
+                    Navigator.pushReplacement(context,
+                        MaterialPageRoute(builder: (builder) => SignIn()));
+                  });
+                },
+                child: Text("Log out"),
+              ),
             )
           ],
         ),
@@ -134,7 +148,11 @@ class _HomeState extends State<Home> {
                 height: 2,
               ),
 
-              isSearchig ? searchList() : chatRooms()
+              isSearchig
+                  ? searchList()
+                  : Center(
+                      child: chatRooms(),
+                    )
             ],
           ),
         ),
@@ -199,9 +217,41 @@ class _HomeState extends State<Home> {
   }
 
   chatRooms() {
-    return Container(
-      child: ListTile(),
-    );
+    return StreamBuilder(
+        stream: chatRoomStream,
+        builder: (builder, AsyncSnapshot snapshot) {
+          //  print("CHATs");
+          print(snapshot.data);
+          return snapshot.hasData
+              ? ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: snapshot.data.docs.length,
+                  itemBuilder: (itemBuilder, index) {
+                    DocumentSnapshot ds = snapshot.data.docs[index];
+                    // return Text(
+                    //     ds.id.replaceAll(myUsername!, "").replaceAll("_", ""));
+                    return ChatRoomTileList(
+                        lastMessage: ds["lastMessage"],
+                        chatroomID: ds.id,
+                        myUsername: myUsername!);
+                  })
+              : Center(
+                  child: CircularProgressIndicator(),
+                );
+        });
+  }
+
+  chatRoomTile() {}
+
+  chatRoomOnLuanch() async {
+    chatRoomStream = await Databases().getChatRooms();
+    // print("CHAT STREAM");
+    print(chatRoomStream);
+  }
+
+  onLuanch() async {
+    await getMyInforFromSharedPrferences();
+    chatRoomOnLuanch();
   }
 
   getChatWithUserID(String chatUserID, String myUserID) {
@@ -215,6 +265,7 @@ class _HomeState extends State<Home> {
 
   getMyInforFromSharedPrferences() async {
     SharedPrefHelper pref = SharedPrefHelper();
+
     // print("name");
     myName = await pref.getDisplayname();
     // print("pic");
@@ -224,10 +275,76 @@ class _HomeState extends State<Home> {
     // print("email");
     myEmail = await pref.getUserEmail();
     // print("done");
+    setState(() {});
 
     print(myName);
     print(myEmail);
     print(myUsername);
     print(myprofilePic);
+  }
+}
+
+class ChatRoomTileList extends StatefulWidget {
+  final String lastMessage;
+  final String chatroomID;
+  final String myUsername;
+
+  const ChatRoomTileList({
+    Key? key,
+    required this.lastMessage,
+    required this.chatroomID,
+    required this.myUsername,
+  }) : super(key: key);
+
+  @override
+  _ChatRoomTileListState createState() => _ChatRoomTileListState();
+}
+
+class _ChatRoomTileListState extends State<ChatRoomTileList> {
+  late String profilePicture = "";
+  late String name = "";
+  late String username = "";
+
+  getUserDetails() async {
+    username =
+        widget.chatroomID.replaceAll(widget.myUsername, "").replaceAll("_", "");
+
+    QuerySnapshot querySnapshot = await Databases().getChatUserInfo(username);
+
+    print("USER IS" + username);
+    name = querySnapshot.docs[0]["name"];
+    profilePicture = querySnapshot.docs[0]["profileURL"];
+    setState(() {});
+    print("Name" + name);
+    print("URL" + profilePicture);
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getUserDetails();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return profilePicture != ""
+        ? Container(
+            margin: EdgeInsets.all(5),
+            color: Colors.grey[850],
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundImage: NetworkImage(profilePicture),
+              ),
+              title: Text(name),
+              subtitle: Text(widget.lastMessage),
+              onTap: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (builder) =>
+                        Chat(username: username, name: name)));
+              },
+            ),
+          )
+        : Container();
   }
 }

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:snailmail/HelperFunctions/sharedPref.dart';
 
 class Databases {
   //uploading user details to firestore
@@ -60,5 +61,21 @@ class Databases {
         .collection("chats")
         .orderBy("ts", descending: true)
         .snapshots();
+  }
+
+  Future<Stream<QuerySnapshot>> getChatRooms() async {
+    String? myUsername = await SharedPrefHelper().getUsername();
+    return FirebaseFirestore.instance
+        .collection("chatRooms")
+        .orderBy("lastMessageTS", descending: true)
+        .where("users", arrayContains: myUsername)
+        .snapshots();
+  }
+
+  Future<QuerySnapshot> getChatUserInfo(String username) async {
+    return await FirebaseFirestore.instance
+        .collection("users")
+        .where("username", isEqualTo: username)
+        .get();
   }
 }

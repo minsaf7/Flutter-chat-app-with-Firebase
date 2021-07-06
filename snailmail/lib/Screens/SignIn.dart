@@ -15,6 +15,7 @@ class SignIn extends StatefulWidget {
 class _SignInState extends State<SignIn> {
   Color mainColor = Color(0xFF04c3cb);
   Color secondColor = Color(0xFF121212);
+  bool isTapped = false;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +35,13 @@ class _SignInState extends State<SignIn> {
             SizedBox(height: 160),
             GestureDetector(
               onTap: () {
+                setState(() {
+                  isTapped = true;
+                });
                 AuthMethods().googleSignIn(context);
+                setState(() {
+                  isTapped = false;
+                });
               },
               child: Container(
                 height: 60,
