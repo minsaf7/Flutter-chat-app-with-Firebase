@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:random_string/random_string.dart';
 import 'package:snailmail/HelperFunctions/sharedPref.dart';
 import 'package:snailmail/Services/Database.dart';
@@ -23,6 +25,8 @@ class _ChatState extends State<Chat> {
 
   String? myName, myprofilePic, myUsername, myEmail;
 
+  late Stream? messageStream = Stream.empty();
+
   getMyInforFromSharedPrferences() async {
     SharedPrefHelper pref = SharedPrefHelper();
     // print("name");
@@ -44,16 +48,24 @@ class _ChatState extends State<Chat> {
     print(chatRoomId);
   }
 
-  getChatWithUserID(String chatUserID, String myUserID) {
-    if (chatUserID.substring(0, 1).codeUnitAt(0) >
-        myUserID.substring(0, 1).codeUnitAt(0)) {
-      return "$myUserID\_$chatUserID";
+  getChatWithUserID(String userOne, String userTwo) {
+    // if (chatUserID.substring(0, 1).codeUnitAt(0) >
+    //     myUserID.substring(0, 1).codeUnitAt(0)) {
+    //   return "$myUserID\_$chatUserID";
+    // } else {
+    //   return "$chatUserID\_$myUserID";
+    // }
+
+    if (userOne.length > userTwo.length) {
+      return "$userOne\_$userTwo";
     } else {
-      return "$chatUserID\_$myUserID";
+      return "$userTwo\_$userOne";
     }
+
+    //user1 = 6 user 2 = 5
   }
 
-  sendMessage(bool isSedClocked) {
+  sendMessage(bool isSearchClicked) {
     if (messageTestField.text != "") {
       String message = messageTestField.text;
 
@@ -81,19 +93,75 @@ class _ChatState extends State<Chat> {
         };
         Databases().updateMessage(chatRoomId!, messageInfo);
 
-        if (isSedClocked) {
+        if (isSearchClicked) {
           //clearing the textfield after sending the message
           messageTestField.text = "";
+          setState(() {});
 
           //make messageID to blank to get regenerated on the next message
 
           messageID = "";
+          setState(() {});
         }
       });
     }
   }
 
-  getAndSendMesages() async {}
+  Widget messageTile(String message, bool sentByMe) {
+    return Row(
+      mainAxisAlignment:
+          sentByMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+      children: [
+        Container(
+          margin: EdgeInsets.all(5),
+          decoration: BoxDecoration(
+            borderRadius: sentByMe
+                ? BorderRadius.only(
+                    bottomLeft: Radius.circular(20),
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  )
+                : BorderRadius.only(
+                    bottomRight: Radius.circular(20),
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+            color: sentByMe ? mainColor : Colors.black,
+          ),
+          padding: EdgeInsets.all(15),
+          child: Text(
+            message,
+            style: GoogleFonts.ubuntu(
+                color: sentByMe ? secondColor : Colors.white),
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget chatMessages() {
+    return StreamBuilder(
+        stream: messageStream,
+        builder: (context, AsyncSnapshot snapshot) {
+          return snapshot.hasData
+              ? ListView.builder(
+                  //shrinkWrap: true,
+                  padding: EdgeInsets.only(bottom: 100),
+                  reverse: true,
+                  itemCount: snapshot.data!.docs.length,
+                  itemBuilder: (builder, index) {
+                    DocumentSnapshot ds = snapshot.data.docs[index];
+                    return messageTile(
+                        ds["message"], myUsername == ds["sendBy"]);
+                  })
+              : Center(child: CircularProgressIndicator());
+        });
+  }
+
+  getAndSendMesages() async {
+    messageStream = await Databases().getChatRoomMessages(chatRoomId);
+    setState(() {});
+  }
 
   runOnLuanch() async {
     await getMyInforFromSharedPrferences();
@@ -119,11 +187,12 @@ class _ChatState extends State<Chat> {
           image: DecorationImage(
             fit: BoxFit.cover,
             image: NetworkImage(
-                "https://www.kolpaper.com/wp-content/uploads/2020/02/whatsapp-wallpaper.jpg"),
+                "https://i.pinimg.com/originals/8b/58/5f/8b585fb4a5c9fedbb899cfb0cf0331a7.jpg"),
           ),
         ),
         child: Stack(
           children: [
+            chatMessages(),
             Container(
               alignment: Alignment.bottomCenter,
               child: Container(
@@ -135,9 +204,16 @@ class _ChatState extends State<Chat> {
                     children: [
                       Expanded(
                           child: TextField(
-                        onChanged: (val) {
-                          sendMessage(false);
-                        },
+                        // onChanged: (val) {
+                        //   sendMessage(false);
+                        //   print(val);
+
+                        //   if (sendMessage(false)) {
+                        //     messageTestField.text = "";
+                        //     setState(() {});
+                        //   }
+                        // },
+
                         controller: messageTestField,
                         decoration: InputDecoration(
                             border: InputBorder.none,

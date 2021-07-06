@@ -21,6 +21,7 @@ class _HomeState extends State<Home> {
 
   FirebaseAuth auth = FirebaseAuth.instance;
   bool isSearchig = false;
+  bool isKeyboardVisible = false;
   late Stream? usersStream = Stream.empty();
 
   TextEditingController search = TextEditingController();
@@ -156,6 +157,8 @@ class _HomeState extends State<Home> {
       builder: (context, AsyncSnapshot snapshot) {
         return snapshot.hasData
             ? ListView.builder(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
                 itemCount: snapshot.data.docs.length,
                 shrinkWrap: true,
                 itemBuilder: (context, index) {
@@ -190,7 +193,7 @@ class _HomeState extends State<Home> {
                     ),
                   );
                 })
-            : CircularProgressIndicator();
+            : Center(child: CircularProgressIndicator());
       },
     );
   }
