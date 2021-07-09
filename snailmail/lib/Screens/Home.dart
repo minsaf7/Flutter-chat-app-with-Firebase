@@ -60,12 +60,17 @@ class _HomeState extends State<Home> {
         child: ListView(
           children: [
             DrawerHeader(
-              child: myprofilePic!.isEmpty
-                  ? CircleAvatar()
-                  : CircleAvatar(
-                      backgroundImage: NetworkImage(myprofilePic!),
-                    ),
-            ),
+                child: myprofilePic!.isEmpty
+                    ? CircleAvatar()
+                    // : CircleAvatar(
+                    //     radius: 40,
+                    //     backgroundImage: NetworkImage(myprofilePic!),
+                    //   ),
+                    : Container(
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(50)),
+                        child: Image.network(myprofilePic!),
+                      )),
             Container(
               alignment: Alignment.center,
               child: ElevatedButton(
@@ -331,20 +336,27 @@ class _ChatRoomTileListState extends State<ChatRoomTileList> {
     return profilePicture != ""
         ? Container(
             margin: EdgeInsets.all(5),
-            color: Colors.grey[850],
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundImage: NetworkImage(profilePicture),
-              ),
-              title: Text(name),
-              subtitle: Text(widget.lastMessage),
-              onTap: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (builder) =>
-                        Chat(username: username, name: name)));
-              },
-            ),
-          )
+            //color: Colors.grey[850],
+            child: Column(
+              children: [
+                ListTile(
+                  leading: CircleAvatar(
+                    backgroundImage: NetworkImage(profilePicture),
+                  ),
+                  title: Text(name),
+                  subtitle: Text(widget.lastMessage),
+                  onTap: () {
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (builder) =>
+                            Chat(username: username, name: name)));
+                  },
+                ),
+                Divider(
+                  height: 10,
+                  color: Colors.grey[800],
+                )
+              ],
+            ))
         : Container();
   }
 }
