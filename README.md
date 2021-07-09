@@ -1,7 +1,7 @@
 
 # Flutter chat app
 
-A real time chat applocation developed using Flutter and Firebase.
+A real time chat application developed using Flutter and Firebase.
 
 
 ## Features
